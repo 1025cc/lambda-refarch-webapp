@@ -34,19 +34,20 @@ Parameters:
   CognitoDomainName:
     Type: String
     Default: mytodoappdemo
-
   # For Amplify Console frontend hosting
   Repository:
     Type: String
     Description: GitHub Repository URL
+    Default: https://github.com/1025cc/lambda-refarch-webapp
   Branch:
     Type: String
     Description: GitHub Branch
     Default: master
   OauthToken:
     Type: String
-    Description: GitHub Repository URL
+    Description: GitHub OauthToken
     NoEcho: true
+    Default: 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
 
 Resources:
 
@@ -140,6 +141,7 @@ Resources:
       CodeUri: todo-src/getTodo
       Handler: app.getToDoItem
       Tracing: Active
+      Role: arn:aws:iam::251923874329:role/LabRole
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref TodoTable
@@ -167,6 +169,7 @@ Resources:
       CodeUri: todo-src/getAllTodo
       Handler: app.getAllToDoItem
       Tracing: Active
+      Role: arn:aws:iam::251923874329:role/LabRole
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref TodoTable
@@ -193,6 +196,7 @@ Resources:
         CodeUri: todo-src/completeTodo/
         Handler: app.completeToDoItem
         Tracing: Active
+        Role: arn:aws:iam::251923874329:role/LabRole
         Policies:
           - DynamoDBCrudPolicy:
               TableName: !Ref TodoTable
@@ -219,6 +223,7 @@ Resources:
       CodeUri: todo-src/addTodo/
       Handler: app.addToDoItem
       Tracing: Active
+      Role: arn:aws:iam::251923874329:role/LabRole
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TodoTable
@@ -245,6 +250,7 @@ Resources:
         CodeUri: todo-src/updateTodo/
         Handler: app.updateToDoItem
         Tracing: Active
+        Role: arn:aws:iam::251923874329:role/LabRole
         Policies:
           - DynamoDBCrudPolicy:
               TableName: !Ref TodoTable
@@ -269,6 +275,7 @@ Resources:
       CodeUri: todo-src/deleteTodo
       Handler: app.deleteToDoItem
       Tracing: Active
+      Role: arn:aws:iam::251923874329:role/LabRole
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TodoTable
@@ -288,52 +295,12 @@ Resources:
             RestApiId: !Ref TodoApi
             Auth:
               Authorizer: CognitoAuthorizer
-
-  # This role allows API Gateway to push execution and access logs to CloudWatch logs
-  ApiGatewayPushToCloudWatchRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      Description: "Push logs to CloudWatch logs from API Gateway"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - "apigateway.amazonaws.com"
-            Action: "sts:AssumeRole"
-      ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
-
   
   ApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/AccessLog-${TodoApi}
       RetentionInDays: 365
-
-  # Amplify console hosting for static website
-  # 
-  AmplifyRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - amplify.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Policies:
-        - PolicyName: Amplify
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action: "amplify:*"
-                Resource: "*"
 
   AmplifyApp:
     Type: "AWS::Amplify::App"
@@ -358,7 +325,7 @@ Resources:
       Tags:
         - Key: Name
           Value: Todo
-      IAMServiceRole: !GetAtt AmplifyRole.Arn
+      IAMServiceRole: arn:aws:iam::251923874329:role/LabRole
 
   AmplifyBranch:
     Type: AWS::Amplify::Branch
